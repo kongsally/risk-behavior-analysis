@@ -12,6 +12,7 @@ plotly_api = os.environ['PLOTLY_API_KEY']
 print plotly_id, plotly_api
 py.sign_in(plotly_id, plotly_api)
 
+
 def xldate_to_datetime(xldate):
   tempDate = datetime.datetime(1900, 1, 1)
   deltaDays = datetime.timedelta(days=int(xldate))
@@ -20,39 +21,6 @@ def xldate_to_datetime(xldate):
   TheTime = (tempDate + deltaDays + detlaSeconds )
   return TheTime.strftime("%Y")
 
-def status_heatmap(x, y, z):
-	data = [
-	    go.Heatmap(
-	    	x=x,
-	    	y=y,
-	        z=z
-	        )
-	]
-	layout = go.Layout(
-	   title='Count of Facebook Statuses Over Years'
-	)
-	fig = go.Figure(data=data, layout=layout)
-	plot_url = py.plot(fig, filename='user_stat_heatmap')
-
-def status_bargraph(y, formatted_dates, user_ids, users):
-	data = []
-	for i in xrange(len(formatted_dates)):
-		y_vals = []
-		for z in xrange(len(user_ids)):
-			y_vals.append(users[user_ids[z]].count(formatted_dates[i]))
-		current_trace = go.Bar(
-			x = user_ids,
-			y = y_vals,
-			name = formatted_dates[i]
-			)
-		data.append(current_trace)
-
-	layout = go.Layout(
-	    barmode='stack',
-	    title='Count of Facebook Statuses Over Years'
-	)
-	fig = go.Figure(data=data, layout=layout)
-	plot_url = py.plot(fig, filename='stat_count_year')
 
 def load_statuses(dates, statuses, users):
 	with open('data/statuses.csv', 'rb') as csvfile:
@@ -95,6 +63,41 @@ def print_statuses(status_file_name, statuses, keywords, keyword_stats):
     		json.dump(keyword_stats, outfile, ensure_ascii=False)
 
 
+def status_heatmap(x, y, z):
+	data = [
+	    go.Heatmap(
+	    	x=x,
+	    	y=y,
+	        z=z
+	        )
+	]
+	layout = go.Layout(
+	   title='Count of Facebook Statuses Over Years'
+	)
+	fig = go.Figure(data=data, layout=layout)
+	plot_url = py.plot(fig, filename='user_stat_heatmap')
+
+def status_bargraph(y, formatted_dates, user_ids, users):
+	data = []
+	for i in xrange(len(formatted_dates)):
+		y_vals = []
+		for z in xrange(len(user_ids)):
+			y_vals.append(users[user_ids[z]].count(formatted_dates[i]))
+		current_trace = go.Bar(
+			x = user_ids,
+			y = y_vals,
+			name = formatted_dates[i]
+			)
+		data.append(current_trace)
+
+	layout = go.Layout(
+	    barmode='stack',
+	    title='Facebook Users by Status Countss'
+	)
+	fig = go.Figure(data=data, layout=layout)
+	plot_url = py.plot(fig, filename='stat_count_year')
+
+
 def main():
 
 	users = {}
@@ -105,7 +108,7 @@ def main():
 	stat_lengths = {}
 	for user in statuses.keys():
 		stat_lengths[user] = len(statuses[user])
-		
+
 	user_by_freq = sorted(stat_lengths, key=stat_lengths.get, reverse=True)
 	
 
@@ -136,7 +139,7 @@ def main():
 	# status_heatmap(users.keys(), formatted_dates, z)
 
 	#for stacked bargraph
-	#status_bargraph(users.keys(), formatted_dates, user_by_freq, users)
+	status_bargraph(users.keys(), formatted_dates, user_by_freq, users)
 
 
 if __name__ == "__main__":
