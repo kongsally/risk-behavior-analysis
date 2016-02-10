@@ -5,11 +5,12 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 from plotly.tools import FigureFactory as FF
 import os
+import json
 
-plotly_id = os.environ['PLOTLY_ID']
-plotly_api = os.environ['PLOTLY_API_KEY']
-print plotly_id, plotly_api
-py.sign_in(plotly_id, plotly_api)
+# plotly_id = os.environ['PLOTLY_ID']
+# plotly_api = os.environ['PLOTLY_API_KEY']
+# print plotly_id, plotly_api
+# py.sign_in(plotly_id, plotly_api)
 
 def xldate_to_datetime(xldate):
   tempDate = datetime.datetime(1900, 1, 1)
@@ -54,16 +55,11 @@ def status_bargraph(x, y, formatted_dates, user_ids, users):
 	plot_url = py.plot(fig, filename='stat_count_year')
 
 
-def main():
-
-	statuses = {}
-	users = {}
-	dates = []
-
-	################### SEX ##########################
-	sex_file = open('sex_related_statuses', 'w')
-	sex_statuses = {}
-	with open('./data/statuses.csv', 'rb') as csvfile:
+def print_statuses(status_file_name, dates, users, statuses, keywords):
+	status_count_file = open(status_file_name + "_count", 'w')
+	status_file = open(status_file_name, 'w')
+	
+	with open('data/statuses.csv', 'rb') as csvfile:
 		status_reader = csv.reader(csvfile.read().splitlines())
 		for row in status_reader:
 			formatted_date = xldate_to_datetime(float(row[4]))
@@ -76,17 +72,43 @@ def main():
 			else:
 				users[row[1]] = [formatted_date]
 
-			if "sex " in row[3] or "naked " in row[3] or "pussy" in row[3]:
-				if row[1] in sex_statuses.keys():
-					sex_statuses[row[1]].append(row[3])
+			if any(word in row[3].split(" ") for word in keywords):
+				if row[1] in statuses.keys():
+					statuses[row[1]].append(row[3])
 				else:
-					sex_statuses[row[1]] = [row[3]]
-				
-	for x in sex_statuses.keys():
-		print x + '\t' + str(len(sex_statuses[x]))
-		for y in sex_statuses[x]:
-			sex_file.write(x + '\t' + y + '\n')
+					statuses[row[1]] = [row[3]]
 
+	for x in statuses.keys():
+		status_count_file.write(x + '\t' + str(len(statuses[x])) + '\n')
+		for y in statuses[x]:
+			status_file.write(x + '\t' + y + '\n')
+
+	with open(status_file_name + '.json', 'w') as outfile:
+    		json.dump(statuses, outfile, ensure_ascii=False)
+
+
+def main():
+
+	statuses = {}
+	users = {}
+	dates = []
+
+	sex_keywords=["sex", "pussy", "naked", "penis", "rape"]
+	print_statuses("sexual_statuses", dates, users, statuses, sex_keywords)
+
+	statuses = {}
+	users = {}
+	dates = []
+
+	alcohol_keywords=["drunk", "beer", "rum", "vodka", "tequila"]
+	print_statuses("alcohol_statuses", dates, users, statuses, alcohol_keywords)
+
+	statuses = {}
+	users = {}
+	dates = []
+
+	drug_keywords=["marijuana", "weed", "cocaine", "crackhead", "smoke"]
+	print_statuses("drug_statuses", dates, users, statuses, drug_keywords)
 
 	user_ids = []
 	for x in users.keys():
@@ -102,10 +124,13 @@ def main():
 		for x in xrange(len(user_ids)):	
 			z[y].append(users[user_ids[x]].count(formatted_dates[y]))
 
+
+	#for heatmap
 	x = users.keys()
 	y = formatted_dates
+	# status_heatmap(x, y, z)
 
-	status_heatmap(x, y, z)
+	#for stacked bargraph
 	y = users.keys()
 	x = formatted_dates
 	# status_bargraph(x, y, formatted_dates, user_ids, users)
