@@ -54,11 +54,7 @@ def status_bargraph(x, y, formatted_dates, user_ids, users):
 	fig = go.Figure(data=data, layout=layout)
 	plot_url = py.plot(fig, filename='stat_count_year')
 
-
-def print_statuses(status_file_name, dates, users, statuses, keywords):
-	status_count_file = open(status_file_name + "_count", 'w')
-	status_file = open(status_file_name, 'w')
-	
+def load_statuses(dates, statuses, users):
 	with open('data/statuses.csv', 'rb') as csvfile:
 		status_reader = csv.reader(csvfile.read().splitlines())
 		for row in status_reader:
@@ -72,43 +68,51 @@ def print_statuses(status_file_name, dates, users, statuses, keywords):
 			else:
 				users[row[1]] = [formatted_date]
 
-			if any(word in row[3].split(" ") for word in keywords):
-				if row[1] in statuses.keys():
-					statuses[row[1]].append(row[3])
-				else:
-					statuses[row[1]] = [row[3]]
+			if row[1] in statuses.keys():
+				statuses[row[1]].append(row[3])
+			else:
+				statuses[row[1]] = [row[3]]
 
-	for x in statuses.keys():
-		status_count_file.write(x + '\t' + str(len(statuses[x])) + '\n')
-		for y in statuses[x]:
+
+def print_statuses(status_file_name, statuses, keywords, keyword_stats):
+	status_count_file = open(status_file_name + "_count", 'w')
+	status_file = open(status_file_name, 'w')
+
+	for user_id in statuses.keys():
+		for stat in statuses[user_id]:
+			if any(word in stat.split(" ") for word in keywords):
+				if user_id in keyword_stats.keys():
+					keyword_stats[user_id].append(stat)
+				else:
+					keyword_stats[user_id] = [stat]
+
+	for x in keyword_stats.keys():
+		status_count_file.write(x + '\t' + str(len(keyword_stats[x])) + '\n')
+		for y in keyword_stats[x]:
 			status_file.write(x + '\t' + y + '\n')
 
 	with open(status_file_name + '.json', 'w') as outfile:
-    		json.dump(statuses, outfile, ensure_ascii=False)
+    		json.dump(keyword_stats, outfile, ensure_ascii=False)
 
 
 def main():
 
-	statuses = {}
 	users = {}
 	dates = []
+	statuses = {}
+	load_statuses(dates, statuses, users)
 
+	sex_statuses = {}
 	sex_keywords=["sex", "pussy", "naked", "penis", "rape"]
-	print_statuses("sexual_statuses", dates, users, statuses, sex_keywords)
+	print_statuses("sexual_statuses", statuses, sex_keywords, sex_statuses)
 
-	statuses = {}
-	users = {}
-	dates = []
-
+	alcohol_statuses = {}
 	alcohol_keywords=["drunk", "beer", "rum", "vodka", "tequila"]
-	print_statuses("alcohol_statuses", dates, users, statuses, alcohol_keywords)
+	print_statuses("alcohol_statuses", statuses, alcohol_keywords, alcohol_statuses)
 
-	statuses = {}
-	users = {}
-	dates = []
-
+	drug_statuses = {}
 	drug_keywords=["marijuana", "weed", "cocaine", "crackhead", "smoke"]
-	print_statuses("drug_statuses", dates, users, statuses, drug_keywords)
+	print_statuses("drug_statuses", statuses, drug_keywords, drug_statuses)
 
 	user_ids = []
 	for x in users.keys():
