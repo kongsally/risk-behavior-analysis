@@ -44,8 +44,8 @@ def load_statuses(dates, statuses, users):
 
 
 def print_statuses(status_file_name, statuses, keywords, keyword_stats):
-	status_count_file = open(status_file_name + "_count.tsv", 'w')
-	status_file = open(status_file_name + ".tsv", 'w')
+	status_count_file = open(status_file_name + "_count.csv", 'w')
+	status_file = open(status_file_name + ".csv", 'w')
 	
 	for user_id in statuses.keys():
 		for stat in statuses[user_id]:
@@ -56,9 +56,9 @@ def print_statuses(status_file_name, statuses, keywords, keyword_stats):
 					keyword_stats[user_id] = [stat]
 
 	for x in keyword_stats.keys():
-		status_count_file.write(x + '\t' + str(len(keyword_stats[x])) + '\n')
+		status_count_file.write(x + ',\"' + str(len(keyword_stats[x])) + '\"\n')
 		for y in keyword_stats[x]:
-			status_file.write(x + '\t' + y + '\n')
+			status_file.write(x + ',\"' + y + '\"\n')
 
 	with open(status_file_name + '.json', 'w') as outfile:
     		json.dump(keyword_stats, outfile, ensure_ascii=False)
@@ -98,37 +98,49 @@ def status_bargraph(y, formatted_dates, user_ids, users):
 	fig = go.Figure(data=data, layout=layout)
 	plot_url = py.plot(fig, filename='stat_count_year')
 
-def status_piechart(sex, alcohol, drug) :
+def status_piechart(sex, alcohol, drug, violence) :
 
 	total_stat_count = {}
 	for user in sex.keys():
-		total_stat_count[user] = [len(sex[user]), 0, 0]
+		total_stat_count[user] = [len(sex[user]), 0, 0, 0]
 
 	for user in alcohol.keys():
 		if user in total_stat_count.keys():
 			total_stat_count[user][1] = len(alcohol[user])
 		else:
-			total_stat_count[user] = [0, 1, 0]
+			total_stat_count[user] = [0, 1, 0, 0]
 
 	for user in drug.keys():
 		if user in total_stat_count.keys():
 			total_stat_count[user][2] = len(drug[user])
 		else:
-			total_stat_count[user] = [0, 0, 1]
+			total_stat_count[user] = [0, 0, 1, 0]
+
+	for user in violence.keys():
+		if user in total_stat_count.keys():
+			total_stat_count[user][3] = len(violence[user])
+		else:
+			total_stat_count[user] = [0, 0, 0, 1]
+
 
 	total_userIDs = total_stat_count.keys()
 	sex_counts = []
 	alcohol_counts = []
 	drug_counts = []
+	violence_counts = []
 
 	for i in range(0, len(total_userIDs)):
 		sex_counts.append(total_stat_count[total_userIDs[i]][0])
 		alcohol_counts.append(total_stat_count[total_userIDs[i]][1])
 		drug_counts.append(total_stat_count[total_userIDs[i]][2])
+		violence_counts.append(total_stat_count[total_userIDs[i]][3])
 
-	sex_sum = "Sex: " + str(sum(sex_counts))
-	alcohol_sum = "Alcohol: " + str(sum(alcohol_counts))
-	drug_sum = "Drug: " + str(sum (drug_counts)) 
+	sex_sum = sum(sex_counts)
+	alcohol_sum = sum(alcohol_counts)
+	drug_sum = sum(drug_counts)
+	violence_sum = sum(violence_counts)
+
+	total_sum = sex_sum + alcohol_sum + drug_sum + violence_sum + 0.0
 
 	fig = {
 		"data": [
@@ -136,65 +148,84 @@ def status_piechart(sex, alcohol, drug) :
 				"values" : sex_counts,
 				"labels" : total_userIDs,
 				"name" : "Sex",
-				"hole": .4,
+				"hole": .5,
      			"type": "pie",
-     			"domain": {"x": [0, .31]},
+     			"domain": {"x": [0, 0.2]},
      			'textinfo':'none'
 			},
 			{
 				"values" : alcohol_counts,
 				"labels" : total_userIDs,
 				"name" : "Alcohol",
-				"hole": .4,
+				"hole": .5,
       			"type": "pie",
-      			"domain": {"x": [0.33, .64]},
+      			"domain": {"x": [0.22, 0.42]},
       			'textinfo':'none'
 			},
 			{
 				"values" : drug_counts,
 				"labels" : total_userIDs,
 				"name" : "Drug",
-				"hole": .4,
+				"hole": .5,
       			"type": "pie",
-      			"domain": {"x": [0.66, 1]},
+      			"domain": {"x": [0.44, 0.64]},
+      			'textinfo':'none'
+			},
+			{
+				"values" : violence_counts,
+				"labels" : total_userIDs,
+				"name" : "Drug",
+				"hole": .5,
+      			"type": "pie",
+      			"domain": {"x": [0.66, 0.86]},
       			'textinfo':'none'
 			}
+
 		],
 		"layout" : {
-			"title": "Number of Facebook Statuses with Sex, Alcohol, or Drug Content",
+			"title": "Number of Facebook Statuses with Sex, Alcohol, Drug, or Violence Content",
 			"annotations": [
             {
                 "font": {
-                    "size": 11
+                    "size": 13
                 },
                 "showarrow": False,
-                "text": sex_sum,
-                "x": 0.12,
-                "y": 0.5
+                "text": "Sex: " + str(sex_sum),
+                "x": 0.05,
+                "y": 0.15
             },
             {
                 "font": {
-                    "size": 11
+                    "size": 13
                 },
                 "showarrow": False,
-                "text": alcohol_sum,
-                "x": 0.49,
-                "y": 0.5
+                "text": "Alcohol: " + str(alcohol_sum),
+                "x": 0.27,
+                "y": 0.15
             },
             {
                 "font": {
-                    "size": 11
+                    "size": 13
                 },
                 "showarrow": False,
-                "text": drug_sum,
-                "x": 0.87,
-                "y": 0.5
+                "text": "Drug: " + str(drug_sum),
+                "x": 0.54,
+                "y": 0.15
+            },
+            {
+                "font": {
+                    "size": 13
+                },
+                "showarrow": False,
+                "text": "Violence: " + str(violence_sum),
+                "x": 0.81,
+                "y": 0.15
             }]
 
 		}
 	}
 
-	plot_url = py.plot(fig, filename='stat_by_content')
+	plot_url = py.plot(fig, filename='status_by_content')
 
 
 
@@ -217,18 +248,38 @@ def main():
 
 
 	sex_statuses = {}
-	sex_keywords=["sex", "pussy", "naked", "penis", "rape"]
+	sex_keywords = []
+	with open('sex_keywords.csv', 'r') as f:
+		reader = csv.reader(f)
+		sex_keywords = list(reader)[0]
+	sex_keywords = [x.strip() for x in sex_keywords]
 	print_statuses("sex", statuses, sex_keywords, sex_statuses)
 
 	alcohol_statuses = {}
-	alcohol_keywords=["drunk", "beer", "wasted", "vodka", "tequila"]
+	alcohol_keywords = []
+	with open('alcohol_keywords.csv', 'r') as f:
+		reader = csv.reader(f)
+		alcohol_keywords = list(reader)[0]
+	alcohol_keywords = [x.strip() for x in alcohol_keywords]
 	print_statuses("alcohol", statuses, alcohol_keywords, alcohol_statuses)
 
 	drug_statuses = {}
-	drug_keywords=["marijuana", "weed", "cocaine", "crackhead", "smoke"]
+	drug_keywords = []
+	with open('drug_keywords.csv', 'r') as f:
+		reader = csv.reader(f)
+		drug_keywords = list(reader)[0]
+	drug_keywords = [x.strip() for x in drug_keywords]
 	print_statuses("drug", statuses, drug_keywords, drug_statuses)
 
-	status_piechart(sex_statuses, alcohol_statuses, drug_statuses)
+	violence_statuses = {}
+	violence_keywords = []
+	with open('violence_keywords.csv', 'r') as f:
+		reader = csv.reader(f)
+		violence_keywords = list(reader)[0]
+	violence_keywords = [x.strip() for x in violence_keywords]
+	print_statuses("violence", statuses, violence_keywords, violence_statuses)
+
+	# status_piechart(sex_statuses, alcohol_statuses, drug_statuses, violence_statuses)
 
 	formatted_dates = sorted(dates)
 	z = []
