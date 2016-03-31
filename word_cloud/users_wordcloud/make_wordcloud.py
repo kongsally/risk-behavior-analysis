@@ -41,7 +41,7 @@ plt.imshow(wordcloud)
 plt.axis("off")
 
 
-sys.stderr.write("Making Image")
+sys.stderr.write("Making Image" + '\n')
 
 # take relative word frequencies into account, lower max_font_size
 wordcloud = WordCloud(max_font_size=100, width = 2000, height = 2000,
@@ -55,4 +55,4 @@ max_words = 500,relative_scaling=.3, background_color='black').generate(text_com
 image = wordcloud.to_image()
 image.save('Image_' + sys.argv[1],'png')
 
-sys.stderr.write("Done Saving Image " + sys.argv[1])
+sys.stderr.write("Done Saving Image " + sys.argv[1] + '\n')
