@@ -10,12 +10,7 @@ def get_data(filename): return [line.strip().split('\t') for line in open(filena
 
 if __name__ == '__main__' : 
 
-	#The program expects 2 arguments, a file containing training data and a file containing unlabelled data. 
-	#If it does not get two arguments, print instructions and exit
-	if len(sys.argv) < 3 : print "Usage: python classifier.py TRAINING_DATA UNLABELLED_DATA [n]"; exit(0)
-	#Optionally, specify a number of lines of unlabelled data to predict
-	n = None
-	
+
 	#Reading labeled testing data
 	labeled_testing_data = get_data(sys.argv[1])
 	
